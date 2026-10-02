@@ -1,0 +1,26 @@
+# Only the settings that DIFFER from the stock example-dnscrypt-proxy.toml.
+# Keep the stock [sources.*] blocks (resolver + relay lists + minisign keys) as shipped.
+
+listen_addresses = ['127.0.0.1:5353']   # unbound's forward-addr. Frees port 53 for dnsfilter.
+
+ipv4_servers     = true
+ipv6_servers     = false                # flip on if your host has working IPv6
+dnscrypt_servers = true
+doh_servers      = false                # Anonymized-DNS relays only work with DNSCrypt servers
+odoh_servers     = false
+
+require_dnssec   = true                 # only pick resolvers that support DNSSEC
+require_nolog    = true
+require_nofilter = true                 # filtering is dnsfilter's job; want an unfiltered upstream
+
+cache = false                           # unbound already caches; a second cache just delays unblocking
+
+# Relays: query goes you -> relay -> resolver, so the resolver never sees your IP and
+# the relay never sees your queries. Pick relay + resolver run by DIFFERENT organisations,
+# ideally in different countries. Names come from the relays list (relays.md).
+[anonymized_dns]
+routes = [
+    { server_name = '*', via = ['anon-RELAY-ONE', 'anon-RELAY-TWO'] },   # <- replace with real names
+]
+skip_incompatible = true                # resolvers that can't be relayed are used directly; set false
+                                        # if you'd rather fail than ever reveal your IP to a resolver

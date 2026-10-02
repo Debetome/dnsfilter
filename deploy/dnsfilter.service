@@ -1,0 +1,38 @@
+# /etc/systemd/system/dnsfilter.service
+#   useradd --system --no-create-home --shell /usr/sbin/nologin dnsfilter
+# NOTE: systemd does not allow trailing comments after a value, so comments live on their own lines.
+[Unit]
+Description=dnsfilter - blocklist DNS filter in front of unbound
+After=network-online.target unbound.service
+Wants=network-online.target
+
+[Service]
+User=dnsfilter
+Group=dnsfilter
+ExecStart=/usr/local/bin/dnsfilter --config /etc/dnsfilter/config.toml
+# `systemctl reload dnsfilter` = pick up a renewed cert + re-read the lists from disk.
+# `systemctl kill -s USR1 dnsfilter` = force a re-download of every list right now.
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=2
+LimitNOFILE=8192
+
+# Creates /var/lib/dnsfilter owned by the service user (used for the list cache).
+StateDirectory=dnsfilter
+# Ports 53 and 853 without running as root.
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=yes
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target

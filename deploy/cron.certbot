@@ -1,0 +1,5 @@
+# /etc/cron.d/certbot-dnsfilter
+# Twice daily is what the Let's Encrypt docs recommend; certbot only renews when <30 days remain,
+# and only then runs the deploy hook. (Many distros already install a certbot systemd timer -
+# use that OR this cron entry, not both.)
+17 3,15 * * * root certbot renew --quiet

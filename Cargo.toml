@@ -1,0 +1,23 @@
+[package]
+name = "dnsfilter"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "A tiny blocklist-only DNS filter that sits in front of unbound"
+
+[dependencies]
+anyhow = "1"
+arc-swap = "1"
+hickory-proto = { version = "0.26", default-features = false, features = ["std"] }
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "gzip"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "time", "signal", "macros", "io-util", "sync", "fs"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
+toml = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+lto = "thin"
+strip = true

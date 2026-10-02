@@ -1,0 +1,46 @@
+# /etc/dnsfilter/config.toml
+
+[listen]
+# Plain DNS for your LAN. Each address is bound for BOTH udp and tcp.
+# Bind to your LAN address (or 127.0.0.1 + LAN IP), NOT 0.0.0.0, unless a firewall
+# guarantees port 53 is not reachable from the internet (open resolver = DDoS tool).
+plain = ["127.0.0.1:53", "192.168.1.2:53"]
+
+[upstream]
+# unbound, listening on loopback (see deploy/unbound-dnsfilter.conf)
+addr = "127.0.0.1:5335"
+timeout_ms = 3000
+
+[block]
+# "nxdomain": blocked name does not exist (all record types). Simple and final.
+# "null_ip":  A -> 0.0.0.0, AAAA -> ::, everything else NOERROR/empty. Pi-hole's default style.
+mode = "nxdomain"
+ttl = 60          # only used by null_ip
+
+[lists]
+cache_dir = "/var/lib/dnsfilter/lists"   # = systemd StateDirectory, see deploy/dnsfilter.service
+update_interval_hours = 24
+
+# Each entry: an http(s) URL or a local file. Hosts-format, plain domain lists and
+# simple ||domain^ adblock rules are all understood.
+blocklists = [
+  "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+  "https://adaway.org/hosts.txt",
+  "https://v.firebog.net/hosts/AdguardDNS.txt",
+  "/etc/dnsfilter/my-blocklist.txt",
+]
+# Allow beats block when the allow rule is equally or more specific.
+allowlists = [
+  "/etc/dnsfilter/my-allowlist.txt",
+]
+
+# Delete this whole section to run without DoT.
+[tls]
+listen = ["0.0.0.0:853"]
+cert = "/etc/dnsfilter/tls/fullchain.pem"
+key  = "/etc/dnsfilter/tls/privkey.pem"
+# STRONGLY recommended if 853 is reachable from the internet: only clients that send
+# one of these exact names as SNI get a handshake. Use a hard-to-guess label and set
+# that full hostname as the Private DNS name on the phone. Needs a wildcard cert
+# (*.dns.example.com) or a cert that lists this exact name.
+allowed_sni = ["phone-7f3a9c41.dns.example.com"]
